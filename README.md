@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LocalFlow AI
 
-## Getting Started
+Uma plataforma SaaS multi-tenant que integra Inteligencia Artificial Generativa local a negocios fisicos. O LocalFlow utiliza modelos leves (Llama 3.2) processados localmente via Ollama para atuar como assistentes virtuais inteligentes, oferecendo respostas baseadas no contexto especifico de cada estabelecimento (RAG - Retrieval-Augmented Generation).
 
-First, run the development server:
+## O Projeto
 
-```bash
+Este projeto foi desenvolvido com foco em privacidade, baixo consumo de recursos (RAM/VRAM) e experiencia do usuario (UX/UI) nativa para dispositivos moveis. A arquitetura permite que multiplos clientes (estabelecimentos) utilizem a mesma infraestrutura de IA, com cada assistente acessando apenas a memoria (banco vetorial) e a persona correspondente a sua loja.
+
+## Principais Funcionalidades
+
+* Multi-tenancy RAG: Alternancia dinamica de base de dados e prompts de sistema no backend. A IA muda de personalidade e escopo de conhecimento dependendo da loja acessada no frontend.
+* Gestos Nativos (Swipe): Interface responsiva construida no Next.js com suporte a troca de estabelecimentos atraves de gestos de arrasto horizontais (touch-pan) otimizados para mobile.
+* Visao Computacional: Rota multimodal preparada para receber imagens e interpreta-las atraves do modelo llama3.2-vision.
+* Temas Dinamicos: Suporte completo a Modo Claro e Modo Escuro, com paletas de cores (Tailwind) geradas e aplicadas dinamicamente com base na identidade visual de cada cliente.
+* Tunel de Conexao Estatico: Integracao com Ngrok Zero Trust, permitindo que o backend rode isolado localmente enquanto atende requisicoes publicas do frontend hospedado na nuvem.
+
+## Tecnologias Utilizadas
+
+Frontend
+* Next.js / React
+* Tailwind CSS
+* Material Symbols
+
+Backend & IA
+* FastAPI
+* LangChain
+* ChromaDB
+* Ollama
+* Modelos: llama3.2 (Texto) e nomic-embed-text (Embeddings)
+
+Infraestrutura
+* Vercel (Frontend)
+* Ngrok (Tunel HTTPS)
+
+## Como Executar Localmente
+
+### Pre-requisitos
+* Node.js instalado.
+* Python 3.10+ instalado.
+* Ollama rodando localmente com o modelo llama3.2 baixado (comando: ollama pull llama3.2).
+* Conta no Ngrok com um dominio estatico gerado.
+
+### 1. Backend
+
+Vá até o diretorio do backend e crie o seu ambiente virtual:
+
+cd backend
+python -m venv venv
+
+Ative o ambiente virtual e instale as dependencias:
+
+# Windows
+.\venv\Scripts\activate
+
+# Linux/Arch
+source ./venv/bin/activate
+
+# Instalacao
+pip install fastapi uvicorn langchain langchain-ollama chromadb python-multipart
+
+Utilize o script de automacao para iniciar o servico:
+* Windows: execute iniciar.bat.
+* Linux/Arch: execute ./iniciar.sh (apos aplicar chmod +x iniciar.sh).
+
+### 2. Frontend
+
+Va ate a pasta do frontend e instale as dependencias:
+
+cd frontend
+npm install
+
+Crie um arquivo .env.local na raiz do frontend com o endereco do seu tunel Ngrok:
+
+NEXT_PUBLIC_API_URL=https://seu-dominio-estatico.ngrok-free.app
+
+Inicie o servidor de desenvolvimento:
+
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Acesse o endereco local indicado no seu terminal.
