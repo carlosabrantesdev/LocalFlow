@@ -9,7 +9,6 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from estabelecimentos import estabelecimentos_info
 
-# 1. Inicializando o FastAPI
 app = FastAPI(title="API LocalFlow")
 
 app.add_middleware(
@@ -24,11 +23,9 @@ app.add_middleware(
 print("Carregando modelo de embeddings (nomic-embed-text)...")
 embeddings = OllamaEmbeddings(model="nomic-embed-text")
 
-# Vamos guardar um Retriever (pesquisador) diferente para cada loja
 retrievers = {}
 for est_id, dados in estabelecimentos_info.items():
     print(f"Criando banco de memória para: {est_id}")
-    # O collection_name garante que os dados de um não se misturem com o do outro
     vectorstore = Chroma.from_texts(
         dados["info"], 
         embeddings, 
@@ -36,7 +33,7 @@ for est_id, dados in estabelecimentos_info.items():
     )
     retrievers[est_id] = vectorstore.as_retriever(search_kwargs={"k": 2})
 
-# 4. Motor de IA (Leve e Rápido)
+# 4. Modelo de IA
 llm = Ollama(
     model="llama3.2", 
     temperature=0.3,
@@ -46,26 +43,23 @@ llm = Ollama(
 def formatar_documentos(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
-# 5. Novo Modelo de Requisição (Agora exige o ID do front)
+# 5. Modelo de Requisição (Exige ID Estabelecimento)
 class RequisicaoChat(BaseModel):
     mensagem: str
-    estabelecimento_id: str # <-- O Frontend é obrigado a mandar isso agora
+    estabelecimento_id: str
 
 # 6. Rota da API Dinâmica
 @app.post("/api/chat")
 async def responder_cliente(requisicao: RequisicaoChat):
-    # Verifica se a loja enviada pelo Next.js existe no banco
     if requisicao.estabelecimento_id not in estabelecimentos_info:
         raise HTTPException(status_code=404, detail="Estabelecimento não encontrado no sistema.")
     
     try:
-        # Pega as informações exclusivas daquela loja
         dados_loja = estabelecimentos_info[requisicao.estabelecimento_id]
         retriever_da_loja = retrievers[requisicao.estabelecimento_id]
         
-        # Monta o prompt dinamicamente usando a persona certa
         template_dinamico = f"""{dados_loja['persona']}
-        Use APENAS as informações abaixo para responder. Se não souber, peça para ligar no local.
+        Use APENAS as informações abaixo para responder. Se não souber, diga que não sabe responder.
         
         Informações da loja:
         {{context}}
@@ -76,7 +70,6 @@ async def responder_cliente(requisicao: RequisicaoChat):
         
         prompt_dinamico = PromptTemplate.from_template(template_dinamico)
         
-        # Monta o raciocínio na hora
         qa_chain = (
             {"context": retriever_da_loja | formatar_documentos, "question": RunnablePassthrough()}
             | prompt_dinamico
@@ -84,7 +77,6 @@ async def responder_cliente(requisicao: RequisicaoChat):
             | StrOutputParser()
         )
         
-        # Gera a resposta
         resposta = qa_chain.invoke(requisicao.mensagem)
         return {"resposta_ia": resposta}
         
