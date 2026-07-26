@@ -10,7 +10,7 @@ Este projeto foi desenvolvido com foco em privacidade, baixo consumo de recursos
 
 * Multi-tenancy RAG: Alternancia dinamica de base de dados e prompts de sistema no backend. A IA muda de personalidade e escopo de conhecimento dependendo da loja acessada no frontend.
 * Gestos Nativos (Swipe): Interface responsiva construida no Next.js com suporte a troca de estabelecimentos atraves de gestos de arrasto horizontais (touch-pan) otimizados para mobile.
-* Visao Computacional: Rota multimodal preparada para receber imagens e interpreta-las atraves do modelo llama3.2-vision.
+* Visao Computacional: Rota multimodal preparada para receber imagens e interpreta-las atraves do modelo llama3.2.
 * Temas Dinamicos: Suporte completo a Modo Claro e Modo Escuro, com paletas de cores (Tailwind) geradas e aplicadas dinamicamente com base na identidade visual de cada cliente.
 * Tunel de Conexao Estatico: Integracao com Ngrok Zero Trust, permitindo que o backend rode isolado localmente enquanto atende requisicoes publicas do frontend hospedado na nuvem.
 
@@ -26,7 +26,7 @@ Backend & IA
 * LangChain
 * ChromaDB
 * Ollama
-* Modelos: llama3.2 (Texto) e nomic-embed-text (Embeddings)
+* Modelos: llama3.2 (Texto)
 
 Infraestrutura
 * Vercel (Frontend)
@@ -52,7 +52,7 @@ Ative o ambiente virtual e instale as dependencias:
 # Windows
 .\venv\Scripts\activate
 
-# Linux/Arch
+# Linux
 source ./venv/bin/activate
 
 # Instalacao

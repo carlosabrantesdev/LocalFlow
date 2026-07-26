@@ -1,12 +1,49 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { establishments } from '@/constants/establishments';
+
+// Dados da Academia Ação fixados diretamente no arquivo (Sem depender de constants)
+const establishment = {
+  id: 'academia_acao',
+  name: 'Academia Ação',
+  subtitle: 'Sua dose diária de energia',
+  initialMessage: 'Olá! Pronto para transformar seu corpo e mente? Como posso ajudar você a alcançar seus objetivos de treino hoje?',
+  recommendations: ['Planos de treino', 'Horários de funcionamento', 'Localização'],
+  bgImage: 'https://i.ibb.co/VcqdsGP6/b1293865-e696-406a-a2bc-f4499208b8f2.png',
+  logo: 'https://i.ibb.co/LdSxDbZK/67e2c9fd-f670-48ad-866b-8944ba4ed01c.png',
+  theme: {
+    light: {
+      surface: '#F8FAFC',
+      'on-surface': '#0F172A',
+      'surface-container-lowest': '#FFFFFF',
+      'surface-variant': '#E2E8F0',
+      'surface-container': '#F1F5F9',
+      'on-surface-variant': '#475569',
+      'primary-container': '#FFEDD5',
+      'on-primary-container': '#EA580C',
+      primary: '#EA580C',
+      'on-primary': '#FFFFFF',
+      'surface-container-low': '#F8FAFC'
+    },
+    dark: {
+      surface: '#0F172A',
+      'on-surface': '#F8FAFC',
+      'surface-container-lowest': '#020617',
+      'surface-variant': '#334155',
+      'surface-container': '#1E293B',
+      'on-surface-variant': '#94A3B8',
+      'primary-container': '#7C2D12',
+      'on-primary-container': '#FFEDD5',
+      primary: '#F97316',
+      'on-primary': '#FFFFFF',
+      'surface-container-low': '#0F172A'
+    }
+  }
+};
 
 export default function Page() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  const [activeId, setActiveId] = useState(establishments[1].id);
-  const establishment = establishments.find(e => e.id === activeId) || establishments[0];
+  
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [messages, setMessages] = useState([
     { role: 'ai', content: establishment.initialMessage }
@@ -15,15 +52,7 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartX, setDragStartX] = useState(0);
-  const [dragOffset, setDragOffset] = useState(0);
-
-  useEffect(() => {
-    setMessages([{ role: 'ai', content: establishment.initialMessage }]);
-    setInput('');
-  }, [activeId, establishment]);
-
+  // Rolagem automática para a última mensagem
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -56,46 +85,14 @@ export default function Page() {
     }
   };
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    setIsDragging(true);
-    setDragStartX(e.clientX);
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
-    const currentX = e.clientX;
-    setDragOffset(currentX - dragStartX);
-  };
-
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    e.currentTarget.releasePointerCapture(e.pointerId);
-
-    // MUDANÇA AQUI: Limite reduzido de 350 para 75. Fica super fácil e responsivo no celular.
-    const SWIPE_THRESHOLD = 75;
-    const currentIndex = establishments.findIndex(e => e.id === activeId);
-
-    if (dragOffset > SWIPE_THRESHOLD) {
-      const prevIndex = currentIndex === 0 ? establishments.length - 1 : currentIndex - 1;
-      setActiveId(establishments[prevIndex].id);
-    } else if (dragOffset < -SWIPE_THRESHOLD) {
-      const nextIndex = currentIndex === establishments.length - 1 ? 0 : currentIndex + 1;
-      setActiveId(establishments[nextIndex].id);
-    }
-
-    setDragOffset(0);
-  };
-
   const colors = isDarkMode ? establishment.theme.dark : establishment.theme.light;
 
   return (
     <div
-      // MUDANÇA AQUI: Trocado min-h-screen por h-[100dvh]
       className="relative h-[100dvh] w-full overflow-hidden antialiased transition-colors duration-500"
       style={{ backgroundColor: colors.surface, color: colors['on-surface'], fontFamily: '"Manrope", sans-serif' }}
     >
+      {/* Background */}
       <div className="absolute inset-0 z-0">
         {establishment.bgImage && (
           <img
@@ -107,28 +104,20 @@ export default function Page() {
         <div className="absolute inset-0 transition-colors duration-500 backdrop-blur-md" style={{ backgroundColor: `${colors.surface}20` }}></div>
       </div>
 
-      {/* MUDANÇA AQUI: Ajuste no wrapper para ocupar a altura inteira exata */}
       <div className="relative z-10 flex items-center justify-center h-full w-full p-0 sm:p-4 md:p-8 overflow-hidden">
         <div
-          // MUDANÇA AQUI: No celular ele pega a altura inteira (h-full), e o min-h-[600px] aplica APENAS no desktop (sm:min-h-[600px])
-          className={`w-full max-w-3xl h-full sm:h-[80vh] sm:min-h-[600px] backdrop-blur-md sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden border-b-0 sm:border transition-colors duration-500 touch-pan-y ${!isDragging ? 'transition-transform duration-500 ease-out' : ''}`}
+          className="w-full max-w-3xl h-full sm:h-[80vh] sm:min-h-[600px] backdrop-blur-md sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden border-b-0 sm:border transition-colors duration-500"
           style={{
             backgroundColor: `${colors['surface-container-lowest']}F2`,
             borderColor: `${colors['surface-variant']}80`,
-            transform: `translateX(${dragOffset}px) rotate(${dragOffset * 0.02}deg)`,
           }}
         >
           {/* Chat Header */}
           <div
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerUp}
             className="backdrop-blur-md rounded-t-2xl sm:rounded-t-2xl rounded-none w-full border-b shadow-sm flex items-center justify-between px-4 sm:px-6 py-4 shrink-0 transition-colors duration-500 select-none"
             style={{
               backgroundColor: `${colors.surface}CC`,
               borderColor: colors['surface-variant'],
-              cursor: isDragging ? 'grabbing' : 'grab'
             }}
           >
             <div className="flex items-center gap-3 sm:gap-4 pointer-events-none">
@@ -154,7 +143,6 @@ export default function Page() {
 
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
-              onPointerDown={(e) => e.stopPropagation()}
               className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors duration-200 flex items-center justify-center"
               style={{ color: colors['on-surface-variant'] }}
               title="Alternar Tema"
@@ -222,7 +210,7 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Área de Input (Agora sempre visível) */}
+          {/* Área de Input */}
           <div
             className="border-t p-3 sm:p-4 md:p-6 shrink-0 transition-colors duration-500 cursor-auto"
             style={{ backgroundColor: `${colors.surface}E6`, borderColor: colors['surface-variant'] }}
