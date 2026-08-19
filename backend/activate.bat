@@ -1,6 +1,6 @@
 @echo off
 color 0A
-echo      INICIANDO LOCALFLOW
+echo      INICIANDO LOCALFLOW - WINDOWS
 echo.
 
 echo [1/2] Ligando o Backend...

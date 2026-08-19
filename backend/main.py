@@ -61,23 +61,15 @@ def capturar_telemetria_ia():
     ram_usada_mb = 0.0
     vram_usada_mb = 0.0
     
-    # 1. Isolar CPU e RAM (Procurando o processo do llama-server)
     for proc in psutil.process_iter(['pid', 'name']):
         if proc.info['name'] and 'llama-server' in proc.info['name'].lower():
             try:
-                # Captura a CPU do processo (dividido pelo número de threads do processador)
-                # psutil.cpu_count() garante que o valor fique de 0 a 100% global
                 cpu_percent = proc.cpu_percent(interval=0.1) / psutil.cpu_count()
-                
-                # Captura a RAM (Memória Física) exclusiva do processo
-                # Usamos memory_full_info().uss para obter a memória única (Unique Set Size)
-                # Esta é a medida mais precisa do que o processo realmente consome sozinho
                 ram_info = proc.memory_full_info()
                 ram_usada_mb += ram_info.uss / (1024**2)
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
 
-    # 2. Isolar VRAM da GPU (NVIDIA)
     try:
         pynvml.nvmlInit()
         handle = pynvml.nvmlDeviceGetHandleByIndex(0)
