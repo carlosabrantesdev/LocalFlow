@@ -16,11 +16,9 @@ python -m venv venv
 
 Ative o ambiente virtual e instale as dependencias:
 
-Windows
-.\venv\Scripts\activate
+Windows: .\venv\Scripts\activate
 
-Linux
-source ./venv/bin/activate
+Linux: source ./venv/bin/activate
 
 pip install fastapi uvicorn psutil pynvml
 
