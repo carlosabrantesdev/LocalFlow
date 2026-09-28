@@ -2,6 +2,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 
+type Message = {
+  role: 'user' | 'ai';
+  content: string;
+  time?: number | null;
+};
+
 export default function Page() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   
@@ -13,8 +19,8 @@ export default function Page() {
     vram: '0.0'
   });
   
-  const [messages, setMessages] = useState([
-    { role: 'ai', content: 'Olá! Pronto para transformar seu corpo e mente? Como posso ajudar você a alcançar seus objetivos de treino hoje?' }
+  const [messages, setMessages] = useState<Message[]>([
+    { role: 'ai', content: 'Olá! Como posso ajudar você a alcançar seus objetivos de treino hoje?', time: null }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -67,7 +73,7 @@ export default function Page() {
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
 
-    const userMessage = { role: 'user', content: text };
+    const userMessage = { role: 'user' as const, content: text };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
@@ -82,9 +88,9 @@ export default function Page() {
         }),
       });
       const data = await response.json();
-      setMessages(prev => [...prev, { role: 'ai', content: data.resposta_ia }]);
+      setMessages(prev => [...prev, { role: 'ai' as const, content: data.resposta_ia, time: data.tempo_resposta }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'ai', content: 'Desculpe, tive um problema técnico. Pode tentar novamente?' }]);
+      setMessages(prev => [...prev, { role: 'ai' as const, content: 'Desculpe, tive um problema técnico. Pode tentar novamente?' }]);
     } finally {
       setIsLoading(false);
     }
@@ -121,13 +127,11 @@ export default function Page() {
       className="relative h-[100dvh] w-full overflow-hidden antialiased transition-colors duration-700 ease-in-out"
       style={{ backgroundColor: colors.surface, color: colors['on-surface'], fontFamily: '"Manrope", sans-serif' }}
     >
-      {/* Background Sólido Otimizado */}
       <div className="absolute inset-0 z-0 transition-colors duration-700 ease-in-out" 
            style={{ backgroundColor: colors.surface }}>
       </div>
 
       <div className="relative z-10 flex items-center justify-center h-full w-full p-0 sm:p-4 md:p-8 overflow-hidden">
-        {/* Container Principal */}
         <div
           className="w-full max-w-3xl h-full sm:h-[80vh] sm:min-h-[600px] backdrop-blur-md sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden border-b-0 sm:border transition-colors duration-700 ease-in-out"
           style={{
@@ -135,7 +139,6 @@ export default function Page() {
             borderColor: `${colors['surface-variant']}80`,
           }}
         >
-          {/* Chat Header */}
           <div
             className="rounded-t-2xl sm:rounded-t-2xl rounded-none w-full border-b shadow-sm flex items-center justify-between px-4 sm:px-6 py-4 shrink-0 transition-colors duration-700 ease-in-out select-none"
             style={{
@@ -149,7 +152,7 @@ export default function Page() {
                 style={{ backgroundColor: colors['primary-container'], color: colors['on-primary-container'] }}
               >
                 <img 
-                  src="https://i.ibb.co/LdSxDbZK/67e2c9fd-f670-48ad-866b-8944ba4ed01c.png" 
+                  src="/academia.png" 
                   alt="Academia Ação" 
                   className="w-full h-full object-cover" 
                 />
@@ -175,7 +178,7 @@ export default function Page() {
                 
                 {showSystemInfo && (
                   <div 
-                    className="absolute top-full right-0 mt-2 p-3 rounded-xl shadow-xl border z-50 min-w-[160px] animate-in fade-in zoom-in duration-200"
+                    className="absolute top-full right-0 mt-1 p-3 rounded-xl shadow-xl border z-50 min-w-[160px] animate-in fade-in zoom-in duration-200"
                     style={{ 
                       backgroundColor: colors['surface-container-lowest'], 
                       borderColor: colors['surface-variant'],
@@ -232,7 +235,7 @@ export default function Page() {
           </div>
 
           {/* Área de Mensagens */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-transparent flex flex-col cursor-auto custom-scrollbar transition-colors duration-700 ease-in-out">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-transparent flex flex-col cursor-auto custom-scrollbar transition-colors duration-700 ease-in-out">
             <div className="flex justify-center">
               <span
                 className="text-xs font-semibold px-3 py-1 rounded-full transition-colors duration-700 ease-in-out"
@@ -243,7 +246,7 @@ export default function Page() {
             </div>
 
             {messages.map((msg, index) => (
-              <div key={index} className={`flex flex-col gap-1 mt-2 ${msg.role === 'user' ? 'items-end self-end max-w-[85%] sm:max-w-[80%]' : 'items-start self-start max-w-[85%] sm:max-w-[80%]'}`}>
+              <div key={index} className={`flex flex-col gap-1 mt-1 ${msg.role === 'user' ? 'items-end self-end max-w-[85%] sm:max-w-[80%]' : 'items-start self-start max-w-[85%] sm:max-w-[80%]'}`}>
                 <span className="text-xs mx-2 transition-colors duration-700 ease-in-out" style={{ color: colors['on-surface-variant'] }}>
                   {msg.role === 'user' ? 'Você' : 'Assistente Academia Ação'}
                 </span>
@@ -257,6 +260,11 @@ export default function Page() {
                 >
                   {msg.content}
                 </div>
+                {msg.role === 'ai' && msg.time && (
+                  <span className="text-[10px] opacity-60 ml-1 mt-1 transition-colors duration-700 ease-in-out" style={{ color: colors['on-surface-variant'] }}>
+                    Respondido em {msg.time}s
+                  </span>
+                )}
               </div>
             ))}
 
@@ -315,7 +323,7 @@ export default function Page() {
                 <span className="material-symbols-outlined text-[20px] sm:text-[24px]">send</span>
               </button>
             </div>
-            <div className="flex items-center justify-center gap-1.5 mt-2 sm:mt-3 select-none opacity-40 hover:opacity-70 transition-opacity duration-300">
+            <div className="flex items-center justify-center gap-1.5 mt-1 sm:mt-3 select-none opacity-40 hover:opacity-70 transition-opacity duration-300">
               <span
                 className="material-symbols-outlined text-[12px] sm:text-[14px] transition-colors duration-700 ease-in-out"
                 style={{ color: colors['on-surface'] }}

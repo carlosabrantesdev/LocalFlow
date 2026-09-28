@@ -6,7 +6,7 @@ import psutil
 import pynvml
 import time
 
-ACADEMIA_ACAO_INFO = {
+ESTABELECIMENTO_INFO = {
     "info": [
         "Localização: Avenida Independência, 450, Centro, Alexandria - RN.",
         "Horário de funcionamento: Todos os dias, das 05h às 23h.",
@@ -23,12 +23,12 @@ ACADEMIA_ACAO_INFO = {
         "Musculação e cardio inclusos em todos os planos."
     ],
     "persona": (
-        "Você é o atendente virtual da Academia Ação. "
-        "Seja sério, objetivo e profissional. "
-        "Responda apenas ao que foi perguntado. "
-        "Utilize somente as informações fornecidas. "
-        "Não invente preços, horários ou serviços. "
+        "Você é o atendente virtual da Academia Ação."
+        "Seja profissional."
+        "Responda apenas ao que foi perguntado."
+        "Não invente preços, horários ou serviços."
         "Não use frases motivacionais nem respostas longas."
+        "Você foi feito para informar sobre a academia, planos de treino, horários de funcionamento, localização, preços e serviços oferecidos."
     )
 }
 
@@ -107,11 +107,11 @@ async def responder_cliente(requisicao: RequisicaoChat):
         tempo_inicio = time.time()
 
         contexto_loja = formatar_informacoes(
-            ACADEMIA_ACAO_INFO["info"]
+            ESTABELECIMENTO_INFO["info"]
         )
 
         prompt = f"""
-{ACADEMIA_ACAO_INFO['persona']}
+{ESTABELECIMENTO_INFO['persona']}
 
 Use APENAS as informações abaixo para responder.
 Se não souber, diga que não sabe responder.
@@ -149,6 +149,7 @@ Sua resposta:
 
         return {
             "resposta_ia": resposta,
+            "tempo_resposta": tempo_resposta_segundos,
             "telemetria": metricas_hardware
         }
 

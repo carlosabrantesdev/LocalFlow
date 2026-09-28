@@ -1,0 +1,45 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+
+\title{Documento de Requisitos - LocalFlow}
+\author{Equipe de Desenvolvimento}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introdução}
+O LocalFlow é uma aplicação de atendimento virtual para a Academia Ação, utilizando Inteligência Artificial local para fornecer informações sobre planos, horários, localização e serviços, integrando um frontend em Next.js com um backend em FastAPI e Ollama.
+
+\section{Requisitos Funcionais (RF)}
+Os requisitos funcionais descrevem as funcionalidades que o sistema deve oferecer ao usuário final.
+
+\begin{enumerate}[label=RF\arabic*:, leftmargin=1.5cm]
+    \item \textbf{Chat de Atendimento:} O sistema deve permitir que o usuário envie mensagens de texto para interagir com a IA.
+    \item \textbf{Respostas Baseadas em Contexto:} A IA deve responder às perguntas utilizando exclusivamente as informações fornecidas sobre a Academia Ação (persona e base de conhecimento).
+    \item \textbf{Informações de Planos e Preços:} O sistema deve ser capaz de informar os valores dos planos mensal, trimestral e anual.
+    \item \textbf{Informações de Horários e Localização:} O sistema deve fornecer o endereço da academia e seus horários de funcionamento.
+    \item \textbf{Sugestões de Perguntas:} O sistema deve exibir botões de resposta rápida com temas comuns (ex: Planos de treino, Localização).
+    \item \textbf{Monitoramento de Hardware:} O sistema deve capturar e exibir em tempo real o consumo de CPU, RAM e VRAM do processo da IA.
+    \item \textbf{Cálculo de Latência:} O sistema deve calcular e exibir o tempo de resposta (em segundos) de cada interação da IA.
+    \item \textbf{Alternância de Tema:} O sistema deve permitir que o usuário alterne entre o modo claro (Light Mode) e o modo escuro (Dark Mode).
+\end{enumerate}
+
+\section{Requisitos Não Funcionais (RNF)}
+Os requisitos não funcionais descrevem as restrições e qualidades do sistema.
+
+\begin{enumerate}[label=RNF\arabic*:, leftmargin=1.5cm]
+    \item \textbf{Privacidade e Localidade:} O processamento da IA deve ser realizado localmente (via Ollama), garantindo que os dados não saiam da infraestrutura do usuário.
+    \item \textbf{Tempo de Resposta:} O sistema deve buscar a menor latência possível na geração de respostas para garantir uma experiência de chat fluida.
+    \item \textbf{Interface Responsiva:} A interface deve ser adaptável a diferentes tamanhos de tela (desktop e mobile).
+    \item \textbf{Tecnologias Utilizadas:} O frontend deve ser desenvolvido em Next.js e o backend em FastAPI (Python).
+    \item \textbf{Consistência de Persona:} A IA deve manter um tom sério, objetivo e profissional, evitando inventar informações.
+    \item \textbf{Disponibilidade de Telemetria:} A coleta de métricas de hardware deve ocorrer a cada 5 segundos para manter a precisão do monitoramento.
+\end{enumerate}
+
+\end{document}
