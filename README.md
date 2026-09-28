@@ -5,8 +5,7 @@
 ### Pre-requisitos
 * Node.js instalado.
 * Python 3.10+ instalado.
-* Ollama rodando localmente com o modelo llama3.2 baixado (comando: ollama pull llama3.2).
-* Conta no Ngrok com um dominio estatico gerado.
+* Ollama rodando localmente com o modelo llama3.2 baixado.
 
 ### 1. Backend
 
