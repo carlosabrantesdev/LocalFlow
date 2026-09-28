@@ -1,4 +1,4 @@
-# LocalFlow AI
+# LocalFlow
 
 ## Como Executar Localmente
 
@@ -16,29 +16,20 @@ python -m venv venv
 
 Ative o ambiente virtual e instale as dependencias:
 
-# Windows
+Windows
 .\venv\Scripts\activate
 
-# Linux
+Linux
 source ./venv/bin/activate
 
-# Instalacao
-pip install fastapi uvicorn langchain langchain-ollama chromadb python-multipart
-
-Utilize o script de automacao para iniciar o servico:
-* Windows: execute iniciar.bat.
-* Linux/Arch: execute ./iniciar.sh (apos aplicar chmod +x iniciar.sh).
+pip install fastapi uvicorn psutil pynvml
 
 ### 2. Frontend
 
-Va ate a pasta do frontend e instale as dependencias:
+Vá até a pasta do frontend e instale as dependências:
 
 cd frontend
 npm install
-
-Crie um arquivo .env.local na raiz do frontend com o endereco do seu tunel Ngrok:
-
-NEXT_PUBLIC_API_URL=https://seu-dominio-estatico.ngrok-free.app
 
 Inicie o servidor de desenvolvimento:
 
