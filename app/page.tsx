@@ -49,7 +49,8 @@ export default function Page() {
     try {
       const response = await fetch(`${API_URL}/api/system-info`, {
         headers: {
-          'ngrok-skip-browser-warning': 'true'
+          'ngrok-skip-browser-warning': 'true',
+          'Content-Type': 'application/json'
         }
       });
       const data = await response.json();
@@ -324,12 +325,6 @@ export default function Page() {
               </button>
             </div>
             <div className="flex items-center justify-center gap-1.5 mt-1 sm:mt-3 select-none opacity-40 hover:opacity-70 transition-opacity duration-300">
-              <span
-                className="material-symbols-outlined text-[12px] sm:text-[14px] transition-colors duration-700 ease-in-out"
-                style={{ color: colors['on-surface'] }}
-              >
-                memory
-              </span>
               <span
                 className="text-[9px] sm:text-[11px] font-medium transition-colors duration-700 ease-in-out"
                 style={{ color: colors['on-surface'] }}

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import ollama
 import psutil
-import pynvml
+import win32pdh
 import time
 
 ESTABELECIMENTO_INFO = {
@@ -23,12 +23,13 @@ ESTABELECIMENTO_INFO = {
         "Musculação e cardio inclusos em todos os planos."
     ],
     "persona": (
-        "Você é o atendente virtual da Academia Ação."
-        "Seja profissional."
-        "Responda apenas ao que foi perguntado."
-        "Não invente preços, horários ou serviços."
-        "Não use frases motivacionais nem respostas longas."
-        "Você foi feito para informar sobre a academia, planos de treino, horários de funcionamento, localização, preços e serviços oferecidos."
+        "Você é o atendente virtual da Academia Ação. "
+        "Seja profissional. "
+        "Responda apenas ao que foi perguntado. "
+        "Não invente preços, horários ou serviços. "
+        "Não use frases motivacionais nem respostas longas. "
+        "Você foi feito para informar sobre a academia, planos de treino, "
+        "horários de funcionamento, localização, preços e serviços oferecidos."
     )
 }
 
@@ -47,53 +48,107 @@ def formatar_informacoes(info_list):
     return "\n".join(info_list)
 
 
-def capturar_telemetria_ia():
-    cpu_percent = 0.0
-    ram_usada_mb = 0.0
-    vram_usada_mb = 0.0
+def obter_processo_ia():
+    for proc in psutil.process_iter(["pid", "name"]):
+        try:
+            nome = proc.info["name"]
+            if nome and nome.lower() == "llama-server.exe":
+                return proc
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    return None
 
-    for proc in psutil.process_iter(['pid', 'name']):
-        if proc.info['name'] and 'llama-server' in proc.info['name'].lower():
-            try:
-                cpu_percent = proc.cpu_percent(interval=0.1) / psutil.cpu_count()
 
-                ram_info = proc.memory_full_info()
-                ram_usada_mb += ram_info.uss / (1024**2)
+def capturar_snapshot_cpu(processo):
+    if not processo:
+        return 0.0
+    try:
+        t = processo.cpu_times()
+        return t.user + t.system
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        return 0.0
 
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                pass
+
+def capturar_vram_processo(processo):
+    if not processo:
+        return 0.0
 
     try:
-        pynvml.nvmlInit()
+        pid = processo.pid
+        query = win32pdh.OpenQuery()
+        counter = win32pdh.AddCounter(
+            query,
+            r"\GPU Process Memory(*)\Dedicated Usage"
+        )
 
-        handle = pynvml.nvmlDeviceGetHandleByIndex(0)
-        processos_gpu = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
+        win32pdh.CollectQueryData(query)
+        time.sleep(0.05)
+        win32pdh.CollectQueryData(query)
 
-        for proc_gpu in processos_gpu:
-            try:
-                nome_proc = psutil.Process(proc_gpu.pid).name().lower()
+        dados = win32pdh.GetFormattedCounterArray(
+            counter,
+            win32pdh.PDH_FMT_LARGE
+        )
 
-                if 'llama-server' in nome_proc:
-                    vram_usada_mb += proc_gpu.usedGpuMemory / (1024**2)
+        total_bytes = 0
+        for instancia, valor in dados.items():
+            if instancia.startswith(f"pid_{pid}_"):
+                total_bytes += valor
 
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                pass
+        win32pdh.RemoveCounter(counter)
+        win32pdh.CloseQuery(query)
 
-        pynvml.nvmlShutdown()
+        return round(total_bytes / (1024 ** 2), 2)
 
-    except Exception as e:
-        print(f"Aviso GPU: Não foi possível capturar processo da GPU. {e}")
+    except Exception:
+        return 0.0
+
+
+def capturar_telemetria(processo, cpu_tempo_inicial, duracao_segundos):
+    ram_usada_mb = 0.0
+
+    cpu_tempo_final = capturar_snapshot_cpu(processo)
+    delta_cpu_tempo = max(0.0, cpu_tempo_final - cpu_tempo_inicial)
+
+    qtd_cores = psutil.cpu_count() or 1
+    if duracao_segundos > 0:
+        cpu_percent = (delta_cpu_tempo / duracao_segundos) * 100 / qtd_cores
+    else:
+        cpu_percent = 0.0
+
+    if processo:
+        try:
+            ram_info = processo.memory_full_info()
+            ram_usada_mb = ram_info.uss / (1024 ** 2)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+
+    vram_usada_mb = capturar_vram_processo(processo)
 
     return {
-        "cpu_ia_percentual": round(cpu_percent, 2),
+        "cpu_ia_percentual": round(min(cpu_percent, 100.0), 2),
         "ram_ia_mb": round(ram_usada_mb, 2),
-        "vram_ia_mb": round(vram_usada_mb, 2)
+        "vram_ia_mb": vram_usada_mb
     }
 
 
 @app.get("/api/system-info")
 async def get_system_info():
-    return capturar_telemetria_ia()
+    processo = obter_processo_ia()
+    cpu_ini = capturar_snapshot_cpu(processo)
+    tempo_inicio = time.time()
+
+    time.sleep(0.1)
+
+    duracao = time.time() - tempo_inicio
+
+    metricas = capturar_telemetria(processo, cpu_ini, duracao)
+
+    metricas["processo"] = "llama-server.exe"
+    metricas["pid"] = processo.pid if processo else None
+    metricas["processo_encontrado"] = processo is not None
+
+    return metricas
 
 
 class RequisicaoChat(BaseModel):
@@ -104,11 +159,11 @@ class RequisicaoChat(BaseModel):
 @app.post("/api/chat")
 async def responder_cliente(requisicao: RequisicaoChat):
     try:
+        processo = obter_processo_ia()
+        cpu_tempo_inicial = capturar_snapshot_cpu(processo)
         tempo_inicio = time.time()
 
-        contexto_loja = formatar_informacoes(
-            ESTABELECIMENTO_INFO["info"]
-        )
+        contexto_loja = formatar_informacoes(ESTABELECIMENTO_INFO["info"])
 
         prompt = f"""
 {ESTABELECIMENTO_INFO['persona']}
@@ -130,22 +185,28 @@ Sua resposta:
             prompt=prompt,
             options={
                 "temperature": 0.3,
-                "num_ctx": 1024
+                "num_ctx": 1024,
+                "num_gpu": 0
             }
         )
 
-        resposta = resposta_ollama["response"]
-
         tempo_fim = time.time()
+        duracao = tempo_fim - tempo_inicio
+        processo = obter_processo_ia()
 
-        metricas_hardware = capturar_telemetria_ia()
-
-        tempo_resposta_segundos = round(
-            tempo_fim - tempo_inicio,
-            2
+        metricas_hardware = capturar_telemetria(
+            processo,
+            cpu_tempo_inicial,
+            duracao
         )
 
+        resposta = resposta_ollama["response"]
+        tempo_resposta_segundos = round(duracao, 2)
         metricas_hardware["latencia_segundos"] = tempo_resposta_segundos
+
+        metricas_hardware["processo"] = "llama-server.exe"
+        metricas_hardware["pid"] = processo.pid if processo else None
+        metricas_hardware["processo_encontrado"] = processo is not None
 
         return {
             "resposta_ia": resposta,
