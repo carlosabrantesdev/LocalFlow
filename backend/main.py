@@ -186,7 +186,7 @@ Sua resposta:
             options={
                 "temperature": 0.3,
                 "num_ctx": 1024,
-                "num_gpu": 0
+                # "num_gpu": 0 # Uso de GPU/CPU
             }
         )
 
