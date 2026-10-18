@@ -1,0 +1,88 @@
+@startuml diagrama_classe
+
+title LocalFlow — Diagrama de classes
+
+package "Frontend" {
+  class PaginaAtendimento <<componente React>> {
+    - URL_API : string
+    - temaEscuro : boolean
+    - exibirInformacoesSistema : boolean
+    - informacoesSistema : InformacoesSistema
+    - mensagens : Mensagem[]
+    - textoDigitado : string
+    - carregando : boolean
+    --
+    + enviarMensagem(texto: string) : Promise<void>
+    + buscarInformacoesSistema() : Promise<void>
+    + alternarInformacoesSistema() : Promise<void>
+  }
+
+  class Mensagem <<tipo TypeScript>> {
+    + autor : "usuario" | "ia"
+    + conteudo : string
+    + tempoResposta : number | null [0..1]
+  }
+
+  class InformacoesSistema <<objeto de estado>> {
+    + cpu : string
+    + ram : string
+    + vram : string
+  }
+}
+
+package "Backend" {
+  class "main.py" as Main <<módulo Python>> {
+    + app : FastAPI
+    --
+    + responder_cliente(requisicao: RequisicaoChat) : RespostaChat
+    + get_sistema_info() : Telemetria
+    + formatar_informacoes(info_list) : str
+    + obter_processo_ia() : Process | None
+    + capturar_cpu(processo) : float
+    + capturar_vram_processo(processo) : float
+    + capturar_telemetria(processo, cpu_tempo_inicial, duracao_segundos) : dict
+  }
+
+  class RequisicaoChat {
+    + mensagem : str
+    + estabelecimento_id : str
+  }
+
+  class "ESTABELECIMENTO_INFO" as EstabelecimentoInfo <<dicionário>> {
+    + info : list[str]
+    + persona : str
+  }
+
+  class RespostaChat <<estrutura JSON>> {
+    + resposta_ia : str
+    + tempo_resposta : float
+    + telemetria : Telemetria
+  }
+
+  class Telemetria <<estrutura JSON>> {
+    + cpu_ia_percentual : float
+    + ram_ia_mb : float
+    + vram_ia_mb : float
+    + processo : str
+    + latencia_segundos : float [0..1]
+  }
+}
+
+class ollama <<módulo externo>> {
+  + generate(model, prompt, options)
+}
+
+PaginaAtendimento "1" *-- "1..*" Mensagem : mensagens
+PaginaAtendimento "1" *-- "1" InformacoesSistema : informacoesSistema
+PaginaAtendimento ..> Main : HTTP\n/api/chat e /api/sistema-info
+PaginaAtendimento ..> RequisicaoChat : envia
+PaginaAtendimento ..> RespostaChat : lê resposta e tempo
+
+Main ..> RequisicaoChat : recebe
+Main ..> RespostaChat : retorna no chat
+Main ..> Telemetria : retorna em sistema-info
+Main --> EstabelecimentoInfo : consulta contexto e persona
+Main ..> ollama : gera resposta
+RespostaChat "1" *-- "1" Telemetria
+
+@enduml

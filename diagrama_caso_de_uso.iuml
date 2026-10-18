@@ -1,0 +1,20 @@
+@startuml diagrama_caso_de_uso
+
+left to right direction
+title LocalFlow — Diagrama de casos de uso do cliente
+
+actor "Cliente" as Usuario
+
+rectangle "Atendimento" {
+  usecase "Consultar informações\nda academia pelo chat" as UC_Consultar
+  usecase "Consultar tempo de\nresposta do assistente" as UC_Tempo
+  usecase "Consultar consumo\nde recursos da IA" as UC_Recursos
+  usecase "Alternar tema para\nclaro ou escuro" as UC_Tema
+}
+
+Usuario -- UC_Consultar
+Usuario -- UC_Tempo
+Usuario -- UC_Recursos
+Usuario -- UC_Tema
+
+@enduml

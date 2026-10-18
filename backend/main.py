@@ -59,7 +59,7 @@ def obter_processo_ia():
     return None
 
 
-def capturar_snapshot_cpu(processo):
+def capturar_cpu(processo):
     if not processo:
         return 0.0
     try:
@@ -107,7 +107,7 @@ def capturar_vram_processo(processo):
 def capturar_telemetria(processo, cpu_tempo_inicial, duracao_segundos):
     ram_usada_mb = 0.0
 
-    cpu_tempo_final = capturar_snapshot_cpu(processo)
+    cpu_tempo_final = capturar_cpu(processo)
     delta_cpu_tempo = max(0.0, cpu_tempo_final - cpu_tempo_inicial)
 
     qtd_cores = psutil.cpu_count() or 1
@@ -132,10 +132,10 @@ def capturar_telemetria(processo, cpu_tempo_inicial, duracao_segundos):
     }
 
 
-@app.get("/api/system-info")
-async def get_system_info():
+@app.get("/api/sistema-info")
+async def get_sistema_info():
     processo = obter_processo_ia()
-    cpu_ini = capturar_snapshot_cpu(processo)
+    cpu_ini = capturar_cpu(processo)
     tempo_inicio = time.time()
 
     time.sleep(0.1)
@@ -160,7 +160,7 @@ class RequisicaoChat(BaseModel):
 async def responder_cliente(requisicao: RequisicaoChat):
     try:
         processo = obter_processo_ia()
-        cpu_tempo_inicial = capturar_snapshot_cpu(processo)
+        cpu_tempo_inicial = capturar_cpu(processo)
         tempo_inicio = time.time()
 
         contexto_loja = formatar_informacoes(ESTABELECIMENTO_INFO["info"])
