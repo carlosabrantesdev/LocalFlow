@@ -3,7 +3,7 @@
 left to right direction
 title LocalFlow — Diagrama de casos de uso do cliente
 
-actor "Cliente" as Usuario
+actor "Usuário" as Usuario
 
 rectangle "Atendimento" {
   usecase "Consultar informações\nda academia pelo chat" as UC_Consultar

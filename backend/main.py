@@ -8,19 +8,10 @@ import time
 
 ESTABELECIMENTO_INFO = {
     "info": [
-        "Localização: Avenida Independência, 450, Centro, Alexandria - RN.",
+        "Localização: Rua Benjamin Constant - Centro, Paraná - RN.",
         "Horário de funcionamento: Todos os dias, das 05h às 23h.",
-        "Plano mensal: R$ 120,00.",
-        "Plano trimestral: R$ 330,00.",
-        "Plano anual: R$ 1.200,00.",
-        "Avaliação física: R$ 50,00.",
         "Plano de treino Iniciante: 3 treinos por semana com foco em adaptação muscular.",
         "Plano de treino Avançado: 6 treinos por semana com foco em hipertrofia e condicionamento.",
-        "FitDance: Terça e quinta às 19h.",
-        "Funcional: Segunda, quarta e sexta às 18h.",
-        "Spinning: Segunda a sexta às 06h e às 20h.",
-        "Alongamento: Sábado às 09h.",
-        "Musculação e cardio inclusos em todos os planos."
     ],
     "persona": (
         "Você é o atendente virtual da Academia Ação. "
@@ -28,8 +19,6 @@ ESTABELECIMENTO_INFO = {
         "Responda apenas ao que foi perguntado. "
         "Não invente preços, horários ou serviços. "
         "Não use frases motivacionais nem respostas longas. "
-        "Você foi feito para informar sobre a academia, planos de treino, "
-        "horários de funcionamento, localização, preços e serviços oferecidos."
     )
 }
 
@@ -186,7 +175,7 @@ Sua resposta:
             options={
                 "temperature": 0.3,
                 "num_ctx": 1024,
-                # "num_gpu": 0 # Uso de GPU/CPU
+                "num_gpu": 0 # Uso de GPU/CPU
             }
         )
 
